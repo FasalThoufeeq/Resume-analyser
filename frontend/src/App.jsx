@@ -17,6 +17,7 @@ function App() {
             const response = await axios.post(`${API_URL}/analyze`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
+            console.log(response.data.data,"iiiiiiiiiiiiiiiiiii");
             setAnalysisData(response.data.data);
         } catch (error) {
             console.error("Analysis failed", error);

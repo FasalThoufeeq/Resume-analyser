@@ -49,11 +49,11 @@ export default function ResumeFixes({ data }) {
                         <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start rounded-xl overflow-hidden border border-slate-200">
                             <div className="bg-red-50 p-5 h-full">
                                 <span className="text-xs font-bold uppercase text-red-700 tracking-wider mb-2 block">Original Version</span>
-                                <p className="text-sm text-red-900 leading-relaxed whitespace-pre-wrap">{section.original_text}</p>
+                                <pre className="text-sm text-red-900 leading-relaxed whitespace-pre-wrap font-sans">{typeof section.original_text === 'object' ? JSON.stringify(section.original_text, null, 2) : section.original_text}</pre>
                             </div>
                             <div className="bg-green-50 p-5 h-full border-l border-slate-200">
                                 <span className="text-xs font-bold uppercase text-green-700 tracking-wider mb-2 block">Optimized Version</span>
-                                <p className="text-sm text-green-900 leading-relaxed whitespace-pre-wrap font-medium">{section.improved_text}</p>
+                                <pre className="text-sm text-green-900 leading-relaxed whitespace-pre-wrap font-medium font-sans">{typeof section.improved_text === 'object' ? JSON.stringify(section.improved_text, null, 2) : section.improved_text}</pre>
                                 <div className="mt-4 text-xs text-green-800 bg-green-100 inline-block px-3 py-1 rounded-full border border-green-200">
                                     <span className="font-bold">Reasoning:</span> {section.reasoning}
                                 </div>

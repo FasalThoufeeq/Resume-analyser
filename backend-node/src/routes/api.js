@@ -12,6 +12,6 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
-router.post('/analyze', upload.single('resume'), checkFreeLimit, analyzeResume);
+router.post('/analyze', upload.single('resume'), analyzeResume);
 
 export default router;
