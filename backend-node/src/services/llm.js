@@ -1,41 +1,34 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Lazily initialize Anthropic client so the server doesn't crash on startup if the key is missing
-const getAnthropicClient = () => {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('Missing Anthropic API Key! Please set ANTHROPIC_API_KEY in your .env file.');
+// Lazily initialize Gemini client so the server doesn't crash on startup if the key is missing
+const getGeminiClient = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('Missing Gemini API Key! Please set GEMINI_API_KEY in your .env file.');
   }
-  return new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
 /**
- * Helper to call Claude and force JSON output using Assistant Prefill
+ * Helper to call Gemini and force JSON output using responseMimeType
  */
-async function callClaudeForJson(prompt) {
-  const anthropic = getAnthropicClient();
+async function callGeminiForJson(prompt) {
+  const genAI = getGeminiClient();
 
-  // We append a strict instruction to the user prompt to be safe
-  const finalPrompt = prompt + "\n\nCRITICAL: Output ONLY valid JSON and absolutely nothing else. Do not wrap in markdown tags.";
-
-  const response = await anthropic.messages.create({
-    model: "claude-3-5-sonnet-20241022",
-    max_tokens: 4000,
-    messages: [
-      { role: "user", content: finalPrompt },
-      { role: "assistant", content: "{" } // Force Claude to start generating a JSON object
-    ]
+  // We use gemini-2.5-flash which is fast and supports natively returning JSON.
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    }
   });
 
-  // Since we forced it to start with '{', we need to prepend it to the response text before parsing
-  const jsonString = "{" + response.content[0].text;
-
   try {
-    return JSON.parse(jsonString);
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    return JSON.parse(responseText);
   } catch (error) {
-    console.error("Failed to parse Claude JSON output:", jsonString);
-    throw new Error("Claude returned invalid JSON format.");
+    console.error("Failed to parse Gemini JSON output:", error.message);
+    throw new Error("Gemini returned invalid JSON format.");
   }
 }
 
@@ -73,7 +66,7 @@ ${jobDescriptionText}
 """
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
 
 /**
@@ -117,7 +110,7 @@ ${resumeText}
 """
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
 
 /**
@@ -155,7 +148,7 @@ Scoring Rules:
 - Be strict and realistic
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
 
 
@@ -191,7 +184,7 @@ Return JSON:
 }
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
 
 /**
@@ -230,7 +223,7 @@ Return JSON format mapping original sections/projects to new proposed text.
 }
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
 
 /**
@@ -267,5 +260,5 @@ Be specific and practical. Return JSON:
 }
     `;
 
-  return await callClaudeForJson(prompt);
+  return await callGeminiForJson(prompt);
 }
